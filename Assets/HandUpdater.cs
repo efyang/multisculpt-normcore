@@ -17,11 +17,12 @@ public class HandUpdater : MonoBehaviour
     private Quaternion  _handRotation;
     private BrushStroke _activeBrushStroke;
 
+    [SerializeField] private Brush sharedBrush;
+
 
     // Start is called before the first frame update
     void Start()
     {
-        
     }
 
     // Update is called once per frame
@@ -40,6 +41,8 @@ public class HandUpdater : MonoBehaviour
         // If we lose tracking, stop drawing
         if (!handIsTracking)
             triggerPressed = false;
+
+        sharedBrush.UpdateHand(_realtime.clientID, _handPosition, _handRotation, triggerPressed);
     }
 
     //// Utility

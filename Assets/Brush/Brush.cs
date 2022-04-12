@@ -20,8 +20,16 @@ public class Brush : RealtimeComponent<BrushModel> {
             return;
         }
 
+        // if we are the host
         if (this.model.serverId == _realtime.clientID) {
             // update the model with the average
+            if ((System.DateTime.Now.Ticks/10000) % 100 == 0) {
+                Debug.Log(this.model.handModels.Count + " hands are in model");
+
+                foreach (KeyValuePair<uint, HandModel> p in this.model.handModels) {
+                    Debug.Log("     ClientID: " + p.Key);
+                }
+            }
         }
 
 
@@ -49,5 +57,22 @@ public class Brush : RealtimeComponent<BrushModel> {
         // }
     }
 
-
+    public void UpdateHand(int clientID, Vector3 _handPosition, Quaternion _handRotation, bool triggerPressed) {
+        uint id = ((uint) clientID % 5000);
+        // this.model.handModels.Remove((uint)clientID % 4000);
+        HandModel modelRef;
+        bool modelFound = this.model.handModels.TryGetValue(id, out modelRef);
+        if (!modelFound) {
+            HandModel model = new HandModel();
+            model.position = _handPosition;
+            model.rotation = _handRotation;
+            model.triggerPressed = triggerPressed;
+            
+            this.model.handModels.Add(id, model);
+        } else {
+            modelRef.position = _handPosition;
+            modelRef.rotation = _handRotation;
+            modelRef.triggerPressed = triggerPressed;
+        }
+    }
 }
