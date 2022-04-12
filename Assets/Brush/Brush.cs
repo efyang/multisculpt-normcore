@@ -10,6 +10,8 @@ public class Brush : RealtimeComponent<BrushModel> {
     // Prefab to instantiate when we draw a new brush stroke
     [SerializeField] private GameObject _brushStrokePrefab = null;
 
+    [SerializeField] private GameObject _brushheadObject;
+
     private void Update() {
         if (!_realtime.connected)
             return;
@@ -21,17 +23,49 @@ public class Brush : RealtimeComponent<BrushModel> {
         }
 
         // if we are the host
-        if (this.model.serverId == _realtime.clientID) {
+        if (this.model.serverId == _realtime.clientID && _realtime.clientID != -1) {
             // update the model with the average
-            if ((System.DateTime.Now.Ticks/10000) % 100 == 0) {
+            if ((System.DateTime.Now.Ticks/10000) % 1000 == 0) {
                 Debug.Log(this.model.handModels.Count + " hands are in model");
 
                 foreach (KeyValuePair<uint, HandModel> p in this.model.handModels) {
-                    Debug.Log("     ClientID: " + p.Key);
+                    Debug.Log("     ClientID: " + p.Key + p.Value.triggerPressed);
                 }
             }
+
+            int numHands = this.model.handModels.Count;
+            int triggeredHands = 0;
+            Vector3 avPosition = Vector3.zero;
+            Quaternion avRotation = Quaternion.identity;
+            foreach (KeyValuePair<uint, HandModel> p in this.model.handModels) {
+                HandModel hand = p.Value;
+                if (hand.triggerPressed) {
+                    triggeredHands++;
+                }
+                avPosition += hand.position;
+            }
+            avPosition /= numHands;
+
+            foreach (KeyValuePair<uint, HandModel> p in this.model.handModels) {
+                HandModel hand = p.Value;
+                Quaternion scaledRotation = Quaternion.Slerp(Quaternion.identity, hand.rotation, 1f/(float)numHands);
+                avRotation *= hand.rotation;
+            }
+
+            model.position = avPosition;
+            model.rotation = avRotation;
+            // if (triggeredHands > 0) {
+            //     HandModel modelRef;
+            //     bool modelFound = this.model.handModels.TryGetValue(convertId(_realtime.clientID), out modelRef);
+            //     if (modelFound) {
+            //         this.model.position = modelRef.position;
+            //         this.model.rotation = Quaternion.Slerp(Quaternion.identity, modelRef.rotation, 1f/(float)triggeredHands);
+            //     }
+            // }
         }
 
+        // if we are any client, sync brush position with model position        
+        _brushheadObject.transform.SetPositionAndRotation(model.position, model.rotation);
 
 
         // If the trigger is pressed and we haven't created a new brush stroke to draw, create one!
@@ -57,8 +91,17 @@ public class Brush : RealtimeComponent<BrushModel> {
         // }
     }
 
+    private uint convertId(int id) {
+        return ((uint)id % 5000);
+    }
+
     public void UpdateHand(int clientID, Vector3 _handPosition, Quaternion _handRotation, bool triggerPressed) {
-        uint id = ((uint) clientID % 5000);
+        // this is the world hand (doesn't exist?)
+        if (clientID == -1) {
+            return;
+        }
+
+        uint id = convertId(clientID);
         // this.model.handModels.Remove((uint)clientID % 4000);
         HandModel modelRef;
         bool modelFound = this.model.handModels.TryGetValue(id, out modelRef);
