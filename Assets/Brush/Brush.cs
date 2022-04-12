@@ -12,6 +12,9 @@ public class Brush : RealtimeComponent<BrushModel> {
 
     [SerializeField] private GameObject _brushheadObject;
 
+    // used only if i am host
+    private BrushStroke _activeBrushStroke = null;
+
     private void Update() {
         if (!_realtime.connected)
             return;
@@ -54,14 +57,28 @@ public class Brush : RealtimeComponent<BrushModel> {
 
             model.position = avPosition;
             model.rotation = avRotation;
-            // if (triggeredHands > 0) {
-            //     HandModel modelRef;
-            //     bool modelFound = this.model.handModels.TryGetValue(convertId(_realtime.clientID), out modelRef);
-            //     if (modelFound) {
-            //         this.model.position = modelRef.position;
-            //         this.model.rotation = Quaternion.Slerp(Quaternion.identity, modelRef.rotation, 1f/(float)triggeredHands);
-            //     }
-            // }
+
+            if (triggeredHands == numHands && _activeBrushStroke == null) {
+                // Instantiate a copy of the Brush Stroke prefab.
+                GameObject brushStrokeGameObject = Realtime.Instantiate(_brushStrokePrefab.name, ownedByClient: true, useInstance: _realtime);
+
+                // // Grab the BrushStroke component from it
+                _activeBrushStroke = brushStrokeGameObject.GetComponent<BrushStroke>();
+
+                // // Tell the BrushStroke to begin drawing at the current brush position
+                _activeBrushStroke.BeginBrushStrokeWithBrushTipPoint(model.position, model.rotation);
+            }
+
+            // If the trigger is pressed, and we have a brush stroke, move the brush stroke to the new brush tip position
+            if (triggeredHands == numHands)
+                _activeBrushStroke.MoveBrushTipToPoint(model.position, model.rotation);
+
+
+            // If the trigger is no longer pressed, and we still have an active brush stroke, mark it as finished and clear it.
+            if (!(triggeredHands == numHands) && _activeBrushStroke != null) {
+                _activeBrushStroke.EndBrushStrokeWithBrushTipPoint(model.position, model.rotation);
+                _activeBrushStroke = null;
+            }
         }
 
         // if we are any client, sync brush position with model position        

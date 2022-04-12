@@ -15,9 +15,8 @@ public partial class BrushModel {
     [RealtimeProperty(3, true)]
     private Quaternion _rotation = Quaternion.identity;
 
-    // active brushstroke
-    [RealtimeProperty(4, true)]
-    private BrushStrokeModel _activeBrushstroke = null;
+    [RealtimeProperty(4, false)]
+    private BrushStrokeModel _activeBrushstroke;
 
     [RealtimeProperty(5, true)]
     public RealtimeDictionary<HandModel> _handModels;
