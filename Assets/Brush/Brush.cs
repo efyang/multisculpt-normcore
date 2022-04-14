@@ -39,28 +39,82 @@ public class Brush : RealtimeComponent<BrushModel> {
             // update average position
             int numHands = this.model.handModels.Count;
             int triggeredHands = 0;
-            Vector3 avPosition = Vector3.zero;
-            Quaternion avRotation = Quaternion.identity;
             foreach (KeyValuePair<uint, HandModel> p in this.model.handModels) {
                 HandModel hand = p.Value;
                 if (hand.triggerPressed) {
                     triggeredHands++;
                 }
-                avPosition += hand.position * hand.weightingValue;
             }
-            avPosition /= numHands;
+            bool shouldDraw = triggeredHands > numHands / 2;
 
+            // calculate the non-inclusive averages for each hand
+            Dictionary<uint, Vector3> niAvPositions = new Dictionary<uint, Vector3>();
+            // Dictionary<uint, Quaternion> niAvRotation = new Dictionary<uint, Quaternion>();
+            // assume n <= 100 so doing an n^2 alg is fine
+            foreach (KeyValuePair<uint, HandModel> p in this.model.handModels) {
+                Vector3 niAvPosition = Vector3.zero;
+                // Quaternion avRotation = Quaternion.identity;
+                HandModel phand = p.Value;
+
+
+                if (this.model.handModels.Count == 1) {
+                    niAvPosition = phand.position;
+                    // avRotation = phand.rotation;
+                } else {
+                    float niWeightSum = 0;
+                    foreach (KeyValuePair<uint, HandModel> q in this.model.handModels) {
+                        if (q.Key == p.Key) {
+                            continue;
+                        }
+                        HandModel qhand = q.Value;
+                        // Quaternion scaledRotation = Quaternion.Slerp(Quaternion.identity, qhand.rotation, qhand.weightingValue/(numHands - 1));
+                        // avRotation *= qhand.rotation;
+                        niAvPosition += qhand.position * qhand.weightingValue;
+                        niWeightSum += qhand.weightingValue;
+                    }
+
+                    niAvPosition = niAvPosition / niWeightSum;
+                    // avRotation = Quaternion.Slerp(Quaternion.identity, avRotation, 1 / weightSum);
+                }
+
+                niAvPositions[p.Key] = niAvPosition;
+                // niAvRotation[p.Key] = avRotation;
+            }
+
+            // update weighting values for each hand based on the difference to the non-inclusive average
+            // only updated when actively drawing
+            if (shouldDraw) {
+                foreach (KeyValuePair<uint, HandModel> p in this.model.handModels) {
+                    HandModel hand = p.Value;
+                    float dist_scale = 1;
+                    float min_collab = 0.5f;
+                    float decay = 0.01f;
+                    float clamped_dist = Mathf.Clamp((hand.position - niAvPositions[p.Key]).magnitude/dist_scale, 0, 1);
+                    float collaboration = (1 - clamped_dist) * (1 - min_collab) + min_collab;
+                    float new_weight = decay * collaboration + (1 - decay) * hand.weightingValue;
+                    hand.weightingValue = new_weight;
+                }
+            }
+
+            Vector3 avPosition = Vector3.zero;
+            Quaternion avRotation = Quaternion.identity;
+            float weightSum = 0;
             foreach (KeyValuePair<uint, HandModel> p in this.model.handModels) {
                 HandModel hand = p.Value;
-                Quaternion scaledRotation = Quaternion.Slerp(Quaternion.identity, hand.rotation, hand.weightingValue/(float)numHands);
+                Quaternion scaledRotation = Quaternion.Slerp(Quaternion.identity, hand.rotation, hand.weightingValue);
                 avRotation *= hand.rotation;
+                avPosition += hand.position * hand.weightingValue;
+                weightSum += hand.weightingValue;
             }
+
+            avPosition = avPosition / weightSum;
+            avRotation = Quaternion.Slerp(Quaternion.identity, avRotation, 1 / weightSum);
 
             model.position = avPosition;
             model.rotation = avRotation;
 
             // do the actual drawing of the brushstroke
-            if (triggeredHands == numHands && _activeBrushStroke == null) {
+            if (shouldDraw && _activeBrushStroke == null) {
                 // Instantiate a copy of the Brush Stroke prefab.
                 GameObject brushStrokeGameObject = Realtime.Instantiate(_brushStrokePrefab.name, ownedByClient: true, useInstance: _realtime);
 
@@ -72,12 +126,11 @@ public class Brush : RealtimeComponent<BrushModel> {
             }
 
             // If the trigger is pressed, and we have a brush stroke, move the brush stroke to the new brush tip position
-            if (triggeredHands == numHands)
+            if (shouldDraw)
                 _activeBrushStroke.MoveBrushTipToPoint(model.position, model.rotation);
 
-
             // If the trigger is no longer pressed, and we still have an active brush stroke, mark it as finished and clear it.
-            if (!(triggeredHands == numHands) && _activeBrushStroke != null) {
+            if (!shouldDraw && _activeBrushStroke != null) {
                 _activeBrushStroke.EndBrushStrokeWithBrushTipPoint(model.position, model.rotation);
                 _activeBrushStroke = null;
             }
