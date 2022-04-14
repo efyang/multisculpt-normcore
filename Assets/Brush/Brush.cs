@@ -41,14 +41,12 @@ public class Brush : RealtimeComponent<BrushModel> {
             int triggeredHands = 0;
             Vector3 avPosition = Vector3.zero;
             Quaternion avRotation = Quaternion.identity;
-            float totalWeights = 0;
             foreach (KeyValuePair<uint, HandModel> p in this.model.handModels) {
                 HandModel hand = p.Value;
                 if (hand.triggerPressed) {
                     triggeredHands++;
                 }
                 avPosition += hand.position * hand.weightingValue;
-                totalWeights += hand.weightingValue;
             }
             avPosition /= numHands;
 
@@ -58,8 +56,6 @@ public class Brush : RealtimeComponent<BrushModel> {
                 avRotation *= hand.rotation;
             }
 
-            avRotation = Quaternion.Slerp(Quaternion.identity, avRotation, 1f/totalWeights);
-            avPosition = avPosition / totalWeights;
             model.position = avPosition;
             model.rotation = avRotation;
 
