@@ -36,36 +36,42 @@ public class Brush : RealtimeComponent<BrushModel> {
                 }
             }
 
+            // update average position
             int numHands = this.model.handModels.Count;
             int triggeredHands = 0;
             Vector3 avPosition = Vector3.zero;
             Quaternion avRotation = Quaternion.identity;
+            float totalWeights = 0;
             foreach (KeyValuePair<uint, HandModel> p in this.model.handModels) {
                 HandModel hand = p.Value;
                 if (hand.triggerPressed) {
                     triggeredHands++;
                 }
-                avPosition += hand.position;
+                avPosition += hand.position * hand.weightingValue;
+                totalWeights += hand.weightingValue;
             }
             avPosition /= numHands;
 
             foreach (KeyValuePair<uint, HandModel> p in this.model.handModels) {
                 HandModel hand = p.Value;
-                Quaternion scaledRotation = Quaternion.Slerp(Quaternion.identity, hand.rotation, 1f/(float)numHands);
+                Quaternion scaledRotation = Quaternion.Slerp(Quaternion.identity, hand.rotation, hand.weightingValue/(float)numHands);
                 avRotation *= hand.rotation;
             }
 
+            avRotation = Quaternion.Slerp(Quaternion.identity, avRotation, 1f/totalWeights);
+            avPosition = avPosition / totalWeights;
             model.position = avPosition;
             model.rotation = avRotation;
 
+            // do the actual drawing of the brushstroke
             if (triggeredHands == numHands && _activeBrushStroke == null) {
                 // Instantiate a copy of the Brush Stroke prefab.
                 GameObject brushStrokeGameObject = Realtime.Instantiate(_brushStrokePrefab.name, ownedByClient: true, useInstance: _realtime);
 
-                // // Grab the BrushStroke component from it
+                // Grab the BrushStroke component from it
                 _activeBrushStroke = brushStrokeGameObject.GetComponent<BrushStroke>();
 
-                // // Tell the BrushStroke to begin drawing at the current brush position
+                // Tell the BrushStroke to begin drawing at the current brush position
                 _activeBrushStroke.BeginBrushStrokeWithBrushTipPoint(model.position, model.rotation);
             }
 

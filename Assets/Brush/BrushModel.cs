@@ -16,9 +16,6 @@ public partial class BrushModel {
     private Quaternion _rotation = Quaternion.identity;
 
     [RealtimeProperty(4, false)]
-    private BrushStrokeModel _activeBrushstroke;
-
-    [RealtimeProperty(5, true)]
     public RealtimeDictionary<HandModel> _handModels;
 }
 
@@ -57,10 +54,6 @@ public partial class BrushModel : RealtimeModel {
         }
     }
     
-    public BrushStrokeModel activeBrushstroke {
-        get => _activeBrushstroke;
-    }
-    
     public Normal.Realtime.Serialization.RealtimeDictionary<HandModel> handModels {
         get => _handModels;
     }
@@ -69,8 +62,7 @@ public partial class BrushModel : RealtimeModel {
         ServerId = 1,
         Position = 2,
         Rotation = 3,
-        ActiveBrushstroke = 4,
-        HandModels = 5,
+        HandModels = 4,
     }
     
     #region Properties
@@ -81,28 +73,22 @@ public partial class BrushModel : RealtimeModel {
     
     private ReliableProperty<UnityEngine.Quaternion> _rotationProperty;
     
-    private ModelProperty<BrushStrokeModel> _activeBrushstrokeProperty;
-    
     private ModelProperty<Normal.Realtime.Serialization.RealtimeDictionary<HandModel>> _handModelsProperty;
     
     #endregion
     
     public BrushModel() : base(null) {
-        RealtimeModel[] childModels = new RealtimeModel[2];
-        
-        _activeBrushstroke = new BrushStrokeModel();
-        childModels[0] = _activeBrushstroke;
+        RealtimeModel[] childModels = new RealtimeModel[1];
         
         _handModels = new Normal.Realtime.Serialization.RealtimeDictionary<HandModel>();
-        childModels[1] = _handModels;
+        childModels[0] = _handModels;
         
         SetChildren(childModels);
         
         _serverIdProperty = new ReliableProperty<int>(1, _serverId);
         _positionProperty = new ReliableProperty<UnityEngine.Vector3>(2, _position);
         _rotationProperty = new ReliableProperty<UnityEngine.Quaternion>(3, _rotation);
-        _activeBrushstrokeProperty = new ModelProperty<BrushStrokeModel>(4, _activeBrushstroke);
-        _handModelsProperty = new ModelProperty<Normal.Realtime.Serialization.RealtimeDictionary<HandModel>>(5, _handModels);
+        _handModelsProperty = new ModelProperty<Normal.Realtime.Serialization.RealtimeDictionary<HandModel>>(4, _handModels);
     }
     
     protected override void OnParentReplaced(RealtimeModel previousParent, RealtimeModel currentParent) {
@@ -116,7 +102,6 @@ public partial class BrushModel : RealtimeModel {
         length += _serverIdProperty.WriteLength(context);
         length += _positionProperty.WriteLength(context);
         length += _rotationProperty.WriteLength(context);
-        length += _activeBrushstrokeProperty.WriteLength(context);
         length += _handModelsProperty.WriteLength(context);
         return length;
     }
@@ -126,7 +111,6 @@ public partial class BrushModel : RealtimeModel {
         writes |= _serverIdProperty.Write(stream, context);
         writes |= _positionProperty.Write(stream, context);
         writes |= _rotationProperty.Write(stream, context);
-        writes |= _activeBrushstrokeProperty.Write(stream, context);
         writes |= _handModelsProperty.Write(stream, context);
         if (writes) InvalidateContextLength(context);
     }
@@ -146,10 +130,6 @@ public partial class BrushModel : RealtimeModel {
                 }
                 case (uint) PropertyID.Rotation: {
                     changed = _rotationProperty.Read(stream, context);
-                    break;
-                }
-                case (uint) PropertyID.ActiveBrushstroke: {
-                    changed = _activeBrushstrokeProperty.Read(stream, context);
                     break;
                 }
                 case (uint) PropertyID.HandModels: {
@@ -172,7 +152,6 @@ public partial class BrushModel : RealtimeModel {
         _serverId = serverId;
         _position = position;
         _rotation = rotation;
-        _activeBrushstroke = activeBrushstroke;
         _handModels = handModels;
     }
     
