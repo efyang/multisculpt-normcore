@@ -1,15 +1,22 @@
 fileFormatVersion: 2
-guid: f7b71ecf0d27e074c9488c79843ce66c
+guid: cd4d92dbe54dcbf41bd37179e8b8b19f
 ModelImporter:
   serializedVersion: 23
   fileIDToRecycleName:
     100000: //RootNode
+    100002: MouthMesh
+    100004: MouthPivot
     400000: //RootNode
-    2100000: PalmMaterial
-    2100002: HandMaterial
+    400002: MouthMesh
+    400004: MouthPivot
+    2100000: HeadMaterial
+    2100002: MouthMaterial
     2300000: //RootNode
+    2300002: MouthMesh
     3300000: //RootNode
-    4300000: RightHandGeometry
+    3300002: MouthMesh
+    4300000: HeadMesh
+    4300002: MouthMesh
   externalObjects: {}
   materials:
     importMaterials: 1

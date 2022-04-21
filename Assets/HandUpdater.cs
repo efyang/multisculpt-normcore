@@ -4,7 +4,7 @@ using UnityEngine;
 using UnityEngine.XR;
 using Normal.Realtime;
 
-public class HandUpdater : MonoBehaviour
+public class HandUpdater : RealtimeComponent<HandStatusModel>
 {
     // Reference to Realtime to use to instantiate brush strokes
     [SerializeField] private Realtime _realtime;
@@ -19,6 +19,10 @@ public class HandUpdater : MonoBehaviour
 
     [SerializeField] private Brush sharedBrush;
 
+    // Prefab to instantiate when we draw a new brush stroke
+    [SerializeField] private GameObject _handStatusMarkerPrefab = null;
+
+    private GameObject _handStatusMarkerObject = null;
 
     // Start is called before the first frame update
     void Start()
@@ -41,6 +45,14 @@ public class HandUpdater : MonoBehaviour
         // If we lose tracking, stop drawing
         if (!handIsTracking)
             triggerPressed = false;
+
+        if (!_realtime.connected)
+            return;
+
+        if (_handStatusMarkerObject == null) {
+            _handStatusMarkerObject = Realtime.Instantiate(_handStatusMarkerPrefab.name, ownedByClient: true, useInstance: _realtime);
+        }
+        _handStatusMarkerObject.transform.SetPositionAndRotation(_handPosition, _handRotation);
 
         sharedBrush.UpdateHand(_realtime.clientID, _handPosition, _handRotation, triggerPressed);
     }

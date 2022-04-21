@@ -590,6 +590,8 @@ MonoBehaviour:
   _realtime: {fileID: 1127176008}
   _hand: 1
   sharedBrush: {fileID: 1171840451}
+  _handStatusMarkerPrefab: {fileID: 1424641042452838677, guid: 3021179261cc46141b003177ef05952a,
+    type: 3}
 --- !u!4 &803713390
 Transform:
   m_ObjectHideFlags: 0
@@ -623,7 +625,9 @@ MonoBehaviour:
   _sceneViewDestroyWhenOwnerOrLastClientLeaves: 1
   _sceneViewDestroyWhenOwnerOrLastClientLeavesMigrated: 0
   _sceneViewDestroyWhenLastClientLeaves: 1
-  _components: []
+  _components:
+  - componentID: 1
+    component: {fileID: 803713389}
   _childViews: []
 --- !u!1 &825921909
 GameObject:

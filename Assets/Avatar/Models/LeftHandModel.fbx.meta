@@ -1,5 +1,5 @@
 fileFormatVersion: 2
-guid: f7b71ecf0d27e074c9488c79843ce66c
+guid: 63d3e98e570932546b712b8f10c08d46
 ModelImporter:
   serializedVersion: 23
   fileIDToRecycleName:
@@ -9,7 +9,7 @@ ModelImporter:
     2100002: HandMaterial
     2300000: //RootNode
     3300000: //RootNode
-    4300000: RightHandGeometry
+    4300000: LeftHandGeometry
   externalObjects: {}
   materials:
     importMaterials: 1
