@@ -52,9 +52,14 @@ public class HandUpdater : RealtimeComponent<HandStatusModel>
         if (_handStatusMarkerObject == null) {
             _handStatusMarkerObject = Realtime.Instantiate(_handStatusMarkerPrefab.name, ownedByClient: true, useInstance: _realtime);
         }
-        _handStatusMarkerObject.transform.SetPositionAndRotation(_handPosition, _handRotation);
+
+        this.model.position = _handPosition;
+        this.model.rotation = _handRotation;
+        this.model.triggerPressed = triggerPressed;
+
+        _handStatusMarkerObject.transform.SetPositionAndRotation(this.model.position, this.model.rotation);
         var statusMarkerRenderer = _handStatusMarkerObject.GetComponent<Renderer>();
-        if (triggerPressed) {
+        if (this.model.triggerPressed) {
             statusMarkerRenderer.material.SetColor("_Color", new Color(0, 1, 0, 0.5f));
         } else {
             statusMarkerRenderer.material.SetColor("_Color", new Color(1, 0, 0, 0.5f));
