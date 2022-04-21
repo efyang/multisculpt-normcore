@@ -22,8 +22,7 @@ public class HandUpdater : RealtimeComponent<HandStatusModel>
     // Prefab to instantiate when we draw a new brush stroke
     [SerializeField] private GameObject _handStatusMarkerPrefab = null;
 
-    private GameObject _handStatusMarkerObject = null;
-
+    private HandStatus _handStatus = null;
     // Start is called before the first frame update
     void Start()
     {
@@ -49,23 +48,13 @@ public class HandUpdater : RealtimeComponent<HandStatusModel>
         if (!_realtime.connected)
             return;
 
-        if (_handStatusMarkerObject == null) {
-            _handStatusMarkerObject = Realtime.Instantiate(_handStatusMarkerPrefab.name, ownedByClient: true, useInstance: _realtime);
-        }
-
-        this.model.position = _handPosition;
-        this.model.rotation = _handRotation;
-        this.model.triggerPressed = triggerPressed;
-
-        _handStatusMarkerObject.transform.SetPositionAndRotation(this.model.position, this.model.rotation);
-        var statusMarkerRenderer = _handStatusMarkerObject.GetComponent<Renderer>();
-        if (this.model.triggerPressed) {
-            statusMarkerRenderer.material.SetColor("_Color", new Color(0, 1, 0, 0.5f));
-        } else {
-            statusMarkerRenderer.material.SetColor("_Color", new Color(1, 0, 0, 0.5f));
+        if (_handStatus == null) {
+            GameObject newHandStatus = Realtime.Instantiate(_handStatusMarkerPrefab.name, ownedByClient: true, useInstance: _realtime);
+            _handStatus = newHandStatus.GetComponent<HandStatus>();
         }
 
         sharedBrush.UpdateHand(_realtime.clientID, _handPosition, _handRotation, triggerPressed);
+        _handStatus.SyncHandData(_handPosition, _handRotation, triggerPressed, 1f);
     }
 
     //// Utility
