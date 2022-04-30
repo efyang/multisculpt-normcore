@@ -87,11 +87,12 @@ public class Brush : RealtimeComponent<BrushModel> {
                 foreach (KeyValuePair<uint, HandModel> p in this.model.handModels) {
                     HandModel hand = p.Value;
                     float dist_scale = 1;
-                    float min_collab = 0.5f;
+                    float min_collab = 0.1f;
                     float decay = 0.05f;
                     float clamped_dist = Mathf.Clamp((hand.position - niAvPositions[p.Key]).magnitude/dist_scale, 0, 1);
                     float collaboration = (1 - clamped_dist) * (1 - min_collab) + min_collab;
                     float new_weight = decay * collaboration + (1 - decay) * hand.weightingValue;
+                    print("" + collaboration + " " + new_weight + " " + clamped_dist + "\n");
                     hand.weightingValue = new_weight;
                 }
             }
@@ -167,10 +168,10 @@ public class Brush : RealtimeComponent<BrushModel> {
         return ((uint)id % 5000);
     }
 
-    public void UpdateHand(int clientID, Vector3 _handPosition, Quaternion _handRotation, bool triggerPressed) {
+    public float UpdateHand(int clientID, Vector3 _handPosition, Quaternion _handRotation, bool triggerPressed) {
         // this is the world hand (doesn't exist?)
         if (clientID == -1) {
-            return;
+            return 0;
         }
 
         uint id = convertId(clientID);
@@ -184,10 +185,12 @@ public class Brush : RealtimeComponent<BrushModel> {
             model.triggerPressed = triggerPressed;
             
             this.model.handModels.Add(id, model);
+            return model.weightingValue;
         } else {
             modelRef.position = _handPosition;
             modelRef.rotation = _handRotation;
             modelRef.triggerPressed = triggerPressed;
+            return modelRef.weightingValue;
         }
     }
 }
