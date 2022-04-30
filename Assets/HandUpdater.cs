@@ -54,6 +54,8 @@ public class HandUpdater : RealtimeComponent<HandStatusModel>
         }
 
         sharedBrush.UpdateHand(_realtime.clientID, _handPosition, _handRotation, triggerPressed);
+        // TODO: clean this up
+        // expose sharedBrush handmodel or just pass in the handmodel maybe
         _handStatus.SyncHandData(_handPosition, _handRotation, triggerPressed, 1f);
     }
 

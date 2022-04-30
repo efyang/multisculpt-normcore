@@ -590,7 +590,7 @@ MonoBehaviour:
   _realtime: {fileID: 1127176008}
   _hand: 1
   sharedBrush: {fileID: 1171840451}
-  _handStatusMarkerPrefab: {fileID: 7913615845316362682, guid: 3021179261cc46141b003177ef05952a,
+  _handStatusMarkerPrefab: {fileID: 1095637361152168813, guid: 3021179261cc46141b003177ef05952a,
     type: 3}
 --- !u!4 &803713390
 Transform:

@@ -88,7 +88,7 @@ public class Brush : RealtimeComponent<BrushModel> {
                     HandModel hand = p.Value;
                     float dist_scale = 1;
                     float min_collab = 0.5f;
-                    float decay = 0.01f;
+                    float decay = 0.05f;
                     float clamped_dist = Mathf.Clamp((hand.position - niAvPositions[p.Key]).magnitude/dist_scale, 0, 1);
                     float collaboration = (1 - clamped_dist) * (1 - min_collab) + min_collab;
                     float new_weight = decay * collaboration + (1 - decay) * hand.weightingValue;

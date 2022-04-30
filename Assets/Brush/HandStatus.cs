@@ -11,16 +11,23 @@ public class HandStatus : RealtimeComponent<HandModel>
         
     }
 
+    Color GREEN = new Color(0, 1, 0, 0.5f);
+    Color RED = new Color(1, 0, 0, 0.5f);
+
     // Update is called once per frame
     void Update()
     {
         this.transform.SetPositionAndRotation(this.model.position, this.model.rotation);
-        var statusMarkerRenderer = this.GetComponent<Renderer>();
+        var weightMarkerObject = this.transform.GetChild(1).gameObject;
+        var triggerMarkerObject = this.transform.GetChild(0).gameObject;
+        var triggerMarkerRenderer = triggerMarkerObject.GetComponent<Renderer>();
+        var weightMarkerRenderer = weightMarkerObject.GetComponent<Renderer>();
         if (this.model.triggerPressed) {
-            statusMarkerRenderer.material.SetColor("_Color", new Color(0, 1, 0, 0.5f));
+            triggerMarkerRenderer.material.SetColor("_Color", GREEN);
         } else {
-            statusMarkerRenderer.material.SetColor("_Color", new Color(1, 0, 0, 0.5f));
+            triggerMarkerRenderer.material.SetColor("_Color", RED);
         }
+        weightMarkerRenderer.material.SetColor("_Color", GREEN * this.model.weightingValue + RED * (1 - this.model.weightingValue));
     }
 
     public void SyncHandData(Vector3 position, Quaternion rotation, bool triggerPressed, float weightingValue) {
